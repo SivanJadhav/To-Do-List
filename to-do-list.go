@@ -21,35 +21,73 @@ To-Do CLI
 4. Delete a task
 5. Exit
 
-Enter your choice (1-5):
-`
+Enter your choice (1-5): `
+
+// All Tasks
+var tasks []Task
 
 func main() {
-	// All Tasks
-	var tasks []Task
-
+	load(tasks)
 	// We Will Store the User Response in This
-	var response uint8
-
-	// Printing the Greeting
-	fmt.Println(greeting)
-	fmt.Scanln(&response)
+	var response uint8 = get_response(greeting)
 
 	for response != 5 {
 		switch response {
 		case 1:
+			var title string = get_string("Name of the Task: ")
+			add(Task{title, false})
+			response = get_response(greeting)
+
+		case 2:
+			list_tasks()
+			response = get_response(greeting)
+
+		case 3:
+			list_tasks()
+			var index uint8 = get_response("Which task do you want to mark completed?")
+			mark_completed(index)
+			response = get_response(greeting)
 			
+		case 4:
+			list_tasks()
+			var index uint8 = get_response("Which task do you want to delete?")
+			remove(index)
+			response = get_response(greeting)
 		}
 	}
+	file, err := check_file()
+	if err != nil { fmt.Println("Could not save file") }
+	save(tasks, file)
 }
 
-func add(new_task Task) {}
+func add(new_task Task) {
+	tasks = append(tasks, new_task)
+}
 
-func remove(task Task) {}
+func remove(index uint8) {
+	new_array := tasks[0:index]
+    length := uint8(len(tasks))
+	for i := index + 1; i < length; i++ {
+		new_array = append(new_array, tasks[i])
+	}
+	tasks = new_array
+}
 
-func list_tasks() {}
+func list_tasks() {
+	fmt.Println("Tasks: ")
+	for i, task := range tasks {
+		if task.isCompleted == true {
+			fmt.Printf("[Completed] %v. %v", i, task.Name)
+		} else {
+			fmt.Printf("[Pending] %v. %v", i, task.Name)
+		}
+	}
+	fmt.Println("")
+}
 
-func mark_completed(task_index uint8) {}
+func mark_completed(task_index uint8) {
+	tasks[task_index].isCompleted = true
+}
 
 func save(tasks []Task, file *os.File) error {
 	if file == nil {
@@ -104,4 +142,20 @@ func check_file() (*os.File, error) {
 		if err != nil { return nil, err }
 	}
 	return file, nil
+}
+
+func get_response(prompt string) uint8 {
+	var response uint8
+	fmt.Printf("%v", prompt)
+	fmt.Scan(&response)
+
+	return response
+}
+
+func get_string(prompt string) string {
+	var response string
+	fmt.Printf("%v", prompt)
+	fmt.Scanln(&response)
+
+	return response
 }
